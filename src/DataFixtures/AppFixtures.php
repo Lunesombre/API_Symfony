@@ -8,12 +8,17 @@ use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
     private const NB_ARTICLES = 120;
     private const NB_CATEGORIES = 12;
     private const NB_REGULAR_TEST_USERS = 8;
+
+    public function __construct(private UserPasswordHasherInterface $hasher)
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -35,7 +40,7 @@ class AppFixtures extends Fixture
             $author= new User();
             $author
             ->setEmail($faker->userName().'@gmail.com')
-            ->setPassword('regular');
+            ->setPassword($this->hasher->hashPassword($author, 'regular'));
             $authors[]=$author;
 
             $manager->persist($author);
@@ -56,7 +61,7 @@ class AppFixtures extends Fixture
 
         $admin = new User();
         $admin
-        ->setPassword('admin')
+        ->setPassword($this->hasher->hashPassword($admin,'admin'))
         ->setEmail('admin@boss.com')
         ->setRoles(['ROLE_ADMIN']);
         $manager->persist($admin);
